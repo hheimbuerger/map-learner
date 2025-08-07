@@ -123,22 +123,26 @@ function stopDrawing() {
 // Save and load functions
 async function saveDrawing() {
     try {
-        // Get the current drawing as an image data URL
         const imageData = canvas.toDataURL('image/png');
-        console.log('Saving drawing...');
-        const result = await window.electronAPI.saveDrawing({
+        const drawingData = {
             imageData: imageData,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height
+        };
+        
+        console.log('Saving drawing data:', {
+            timestamp: drawingData.timestamp,
+            canvasSize: `${drawingData.canvasWidth}x${drawingData.canvasHeight}`,
+            imageDataLength: drawingData.imageData.length
         });
-        if (result && result.success) {
-            console.log('Drawing saved successfully');
-        } else {
-            console.error('Failed to save drawing:', result?.error);
-        }
+        
+        const result = await window.unifiedAPI.saveDrawing(drawingData);
+        console.log('Save result:', result);
         return result;
     } catch (error) {
         console.error('Error saving drawing:', error);
-        return { success: false, error: error.message };
+        throw error;
     }
 }
 
@@ -178,17 +182,21 @@ function loadDrawing(data) {
     });
 }
 
-// Listen for saved drawing data from main process
-window.electronAPI.receive('load-drawing', async (data) => {
+// Listen for saved drawing data from main process or web storage
+window.unifiedAPI.receive('load-drawing', async (data) => {
     console.log('Received load-drawing event with data:', data ? 'has data' : 'no data');
     const success = await loadDrawing(data);
-    console.log('Load drawing result:', success ? 'success' : 'failed');
+    if (success) {
+        console.log('Drawing loaded successfully from saved data');
+    } else {
+        console.log('No saved drawing data to load or loading failed');
+    }
 });
 
 // Clear canvas
 clearBtn.addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    window.electronAPI.clearDrawing();
+    window.unifiedAPI.clearDrawing();
     status.textContent = '';
     status.className = 'status';
 });
@@ -224,14 +232,18 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// Configuration from main process
-let backendUrl = 'http://localhost:8000';
+// Configuration - works in both Electron and web modes
+let backendUrl = window.unifiedAPI.getBackendUrl();
 
-// Listen for config from main process
-window.electronAPI.receive('config', (config) => {
-    backendUrl = config.backendUrl;
-    console.log('Using backend URL:', backendUrl);
-});
+// Listen for config from main process (Electron mode only)
+if (window.unifiedAPI.isElectron) {
+    window.electronAPI.receive('config', (config) => {
+        backendUrl = config.backendUrl;
+        console.log('Using backend URL:', backendUrl);
+    });
+} else {
+    console.log('Web mode - using backend URL:', backendUrl);
+}
 
 // Submit drawing
 submitBtn.addEventListener('click', async () => {

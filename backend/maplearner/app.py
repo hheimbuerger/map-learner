@@ -9,11 +9,11 @@ import asyncio
 import io
 import logging
 import os
-import pathlib
-from typing import Any, Dict, List
+from typing import Any, List
 
 from dotenv import load_dotenv
 from flask import Flask, request
+from flask_cors import CORS
 from flask_executor import Executor
 from PIL import Image, UnidentifiedImageError
 from fluent_llm import llm
@@ -30,6 +30,9 @@ logging.basicConfig(
 )
 
 app = Flask(__name__)
+
+# Enable CORS for all routes to allow web frontend access
+CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
 
 # Initialize the executor for background tasks
 executor = Executor(app)
@@ -68,10 +71,17 @@ async def evaluate_drawing_async(image_data: bytes) -> Evaluation:
     #     .request("Hand out a score and advice on how to improve.")\
     #     .prompt_for_type(Evaluation)
 
+    with open('last_image.png', 'wb') as f:
+        f.write(image_data)
+
     evaluation = await llm\
+        .agent(load_prompt('simple'))\
+        .request("What now follows is the student's attempt to evaluate:")\
         .image(image_data)\
-        .request(load_prompt('simple'))\
         .prompt_for_type(Evaluation)
+
+        #.agent("Here's the reference drawing, which I will soon refer to in the example response:")\
+        #.image('data/example_drawing_france.png')\
 
     # return {
     #     "evaluation": "Great job! Your map shows good understanding of geographical features.",
@@ -112,14 +122,14 @@ def evaluate() -> tuple[dict[str, Any], int]:
         if not image_bytes:
             logging.warning("Empty file received")
             return {"error": "Empty file"}, 400
-            
+
         img = Image.open(io.BytesIO(image_bytes))
         img.verify()  # type: ignore[attr-defined]
-        
+
         # Convert to RGB if needed (for JPEG compatibility)
         # if img.mode != 'RGB':
         #     img = img.convert('RGB')
-            
+
         # Reset file pointer after verification
         file_storage.seek(0)
 
@@ -142,7 +152,7 @@ def evaluate() -> tuple[dict[str, Any], int]:
         # Log success and return the result
         logging.info("Successfully processed image")
         # Convert Pydantic model to dict before returning
-        return result.dict(), 200
+        return result.model_dump(), 200
 
     except asyncio.TimeoutError:
         logging.error("Evaluation timed out after %s seconds", API_TIMEOUT)

@@ -28,6 +28,21 @@
             "windows": {
                 "runtimeExecutable": "npm.cmd"
             }
+        },
+        {
+            "name": "Run Frontend (Web)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/frontend",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "start-web-dev"
+            ],
+            "console": "integratedTerminal",
+            "windows": {
+                "runtimeExecutable": "npm.cmd"
+            }
         }
     ],
     "compounds": [
@@ -36,6 +51,13 @@
             "configurations": [
                 "Run Backend (Flask)",
                 "Run Frontend (Electron)"
+            ]
+        },
+        {
+            "name": "Run Full App - Web Mode (Frontend + Backend)",
+            "configurations": [
+                "Run Backend (Flask)",
+                "Run Frontend (Web)"
             ]
         }
     ]

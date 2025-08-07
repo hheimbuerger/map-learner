@@ -6,6 +6,8 @@
   "scripts": {
     "start": "electron .",
     "start-debug": "set ELECTRON_RUN_AS_NODE=1 && electron --remote-debugging-port=9222 .",
+    "start-web": "node web-server.js",
+    "start-web-dev": "node web-server.js --dev",
     "build": "electron-builder",
     "dist": "electron-builder --publish=never"
   },
