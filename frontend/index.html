@@ -14,29 +14,26 @@
         </div>
     </div>
 
-    <div class="canvas-container">
-        <canvas id="drawingCanvas" width="800" height="500"></canvas>
+    <div class="main-content">
+        <div class="canvas-container">
+            <canvas id="drawingCanvas" width="800" height="500"></canvas>
+        </div>
+        
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Last Evaluation</h2>
+            </div>
+            <div class="sidebar-content" id="evaluationResult">
+                <div class="placeholder">
+                    <p>Submit your drawing to receive an evaluation</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="controls">
         <button id="clearBtn">Clear Canvas</button>
         <button id="submitBtn">Submit Drawing</button>
-    </div>
-
-    <!-- Evaluation Result Modal -->
-    <div id="resultModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Evaluation Result</h2>
-                <button class="close-btn" id="closeModalBtn2">&times;</button>
-            </div>
-            <div class="modal-body" id="evaluationResult">
-                <!-- Evaluation content will be inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="closeModalBtn">Close</button>
-            </div>
-        </div>
     </div>
 
     <div id="status" class="status"></div>

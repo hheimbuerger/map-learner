@@ -15,13 +15,14 @@ You've previously received an example drawing. Here's what a good response to th
 
 You will be presented with a crude sketch that resembles a map.
 
-Countries will be labelled by their ISO 3166-1 alpha-2 two-letter country code.
+Countries will be labelled, usually by their ISO 3166-1 alpha-2 two-letter country code, but might also be the full or abbreviated country name.
    Either directly written into a country, or connected with a simple line.
 
 One by one, go through every country you've recognized by its country code.
    Name it, and mention whether its neighbors and their relative positions (in terms of cardinal directions) are correct.
 
-Focus on countries in the center. The surrounding countries might just indicate the borders, and eventually, no more 
+Focus on countries in the center. The surrounding countries might just be there for context to the main countries.
+Do mention if you feel like any particular countries are missing in the drawing, for example any countries bordering the primary country, but not included in the drawing.
 
 The score goes from 0 to 10.
 

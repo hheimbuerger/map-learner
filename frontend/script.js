@@ -9,22 +9,30 @@ let lastY = 0;
 let isErasing = false;
 let currentColor = '#000000';
 
-// Set canvas size to match display
-function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+// Set up the canvas with fixed size
+function initCanvas() {
+    // Set fixed size (should match CSS dimensions)
+    canvas.width = 800;
+    canvas.height = 600;
+    
+    // Set up drawing context
+    ctx.strokeStyle = currentColor; // Use the current color variable
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Make canvas focusable for better stylus support
+    canvas.setAttribute('tabindex', '0');
+    canvas.style.outline = 'none';
 }
 
-// Initial resize
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
+// Initialize the canvas
+initCanvas();
 
-// Set up canvas drawing context
-ctx.strokeStyle = '#000000';
-ctx.lineWidth = 2;
-ctx.lineCap = 'round';
-ctx.lineJoin = 'round';
+// Helper function to check if event is from a valid drawing source
+function isValidDrawingEvent(e) {
+    return (e.pointerType === 'pen' || e.buttons === 1);
+}
 
 // Get coordinates relative to canvas
 function getCoordinates(e) {
@@ -34,10 +42,17 @@ function getCoordinates(e) {
 
     let clientX, clientY;
 
+    // Handle different input types
     if (e.touches && e.touches.length > 0) {
+        // Touch events
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
+    } else if (e.pointerType === 'pen' || e.pointerType === 'touch') {
+        // Pointer events for stylus/touch
+        clientX = e.clientX;
+        clientY = e.clientY;
     } else {
+        // Regular mouse events
         clientX = e.clientX;
         clientY = e.clientY;
     }
@@ -48,41 +63,71 @@ function getCoordinates(e) {
     };
 }
 
-// Mouse event listeners
-canvas.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    isErasing = e.button === 2; // Right mouse button
-    [lastX, lastY] = [e.offsetX, e.offsetY];
-    // Prevent context menu on right click
-    if (isErasing) e.preventDefault();
-    draw(e); // Draw a single point on click
-});
-
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', () => {
-    isDrawing = false;
-});
-canvas.addEventListener('mouseout', () => {
-    isDrawing = false;
-});
-
-// Prevent context menu on right click
-canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-
-// Touch events
-canvas.addEventListener('touchstart', handleTouch);
-canvas.addEventListener('touchmove', handleTouch);
-canvas.addEventListener('touchend', stopDrawing);
-
-function handleTouch(e) {
-    e.preventDefault();
-
-    if (e.type === 'touchstart') {
+// Set up pointer event listeners
+const handlePointerDown = (e) => {
+    if (isValidDrawingEvent(e)) {
+        e.preventDefault();
         startDrawing(e);
-    } else if (e.type === 'touchmove') {
+    }
+};
+
+const handlePointerMove = (e) => {
+    if (isDrawing && isValidDrawingEvent(e)) {
+        e.preventDefault();
         draw(e);
     }
-}
+};
+
+// Add pointer event listeners
+const pointerEvents = [
+    { type: 'pointerdown', handler: handlePointerDown },
+    { type: 'pointermove', handler: handlePointerMove },
+    { type: 'pointerup', handler: stopDrawing },
+    { type: 'pointerout', handler: stopDrawing },
+    { type: 'pointercancel', handler: stopDrawing }
+];
+
+pointerEvents.forEach(({ type, handler }) => {
+    canvas.addEventListener(type, handler, { passive: false });
+});
+
+// Set up event listeners for touch
+canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('pointerdown', {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pointerType: 'touch'
+    });
+    canvas.dispatchEvent(mouseEvent);
+}, { passive: false });
+
+canvas.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('pointermove', {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        pointerType: 'touch'
+    });
+    canvas.dispatchEvent(mouseEvent);
+}, { passive: false });
+
+canvas.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent('pointerup', {
+        pointerType: 'touch'
+    });
+    canvas.dispatchEvent(mouseEvent);
+});
+
+// Prevent touch scrolling while drawing on canvas
+canvas.addEventListener('touchmove', function(e) {
+    if (isDrawing) {
+        e.preventDefault();
+    }
+}, { passive: false });
 
 function startDrawing(e) {
     isDrawing = true;
@@ -187,9 +232,9 @@ window.unifiedAPI.receive('load-drawing', async (data) => {
     console.log('Received load-drawing event with data:', data ? 'has data' : 'no data');
     const success = await loadDrawing(data);
     if (success) {
-        console.log('Drawing loaded successfully from saved data');
+        console.log('Drawing loaded successfully');
     } else {
-        console.log('No saved drawing data to load or loading failed');
+        console.log('Failed to load drawing or no data provided');
     }
 });
 
@@ -199,37 +244,14 @@ clearBtn.addEventListener('click', () => {
     window.unifiedAPI.clearDrawing();
     status.textContent = '';
     status.className = 'status';
-});
-
-// Modal functionality
-const modal = document.getElementById('resultModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const closeModalBtn2 = document.getElementById('closeModalBtn2');
-const evaluationResult = document.getElementById('evaluationResult');
-
-function showModal(content) {
-    evaluationResult.innerHTML = typeof content === 'string' ? content : '';
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
-}
-
-function hideModal() {
-    modal.classList.remove('show');
-    document.body.style.overflow = ''; // Re-enable scrolling
-}
-
-if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', hideModal);
-}
-if (closeModalBtn2) {
-    closeModalBtn2.addEventListener('click', hideModal);
-}
-
-// Close modal when clicking outside the modal content
-window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-        hideModal();
-    }
+    
+    // Reset sidebar to placeholder
+    const evaluationResult = document.getElementById('evaluationResult');
+    evaluationResult.innerHTML = `
+        <div class="placeholder">
+            <p>Submit your drawing to receive an evaluation</p>
+        </div>
+    `;
 });
 
 // Configuration - works in both Electron and web modes
@@ -297,7 +319,7 @@ submitBtn.addEventListener('click', async () => {
         // Format the evaluation result
         let evaluationHTML = `
             <div class="evaluation-result">
-                <div class="score">Score: ${result.score || 'N/A'}/100</div>
+                <div class="score">Score: ${result.score || 'N/A'}/10</div>
                 <div class="feedback">
         `;
         
@@ -317,11 +339,8 @@ submitBtn.addEventListener('click', async () => {
             </div>
         `;
         
-        // Update the modal content
+        // Update the sidebar content
         document.getElementById('evaluationResult').innerHTML = evaluationHTML;
-        
-        // Show the modal
-        modal.classList.add('show');
         
         // Update status
         status.textContent = 'Evaluation complete!';
