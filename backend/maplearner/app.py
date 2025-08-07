@@ -9,12 +9,13 @@ import asyncio
 import io
 import logging
 import os
+from datetime import datetime
 from typing import Any, List
 
 from dotenv import load_dotenv
-from flask import Flask, request
-from flask_cors import CORS
+from flask import Flask, request, jsonify
 from flask_executor import Executor
+from flask_cors import CORS
 from PIL import Image, UnidentifiedImageError
 from fluent_llm import llm
 import pydantic
@@ -32,7 +33,22 @@ logging.basicConfig(
 app = Flask(__name__)
 
 # Enable CORS for all routes to allow web frontend access
-CORS(app, origins=['http://localhost:3000', 'http://127.0.0.1:3000'])
+cors = CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True,
+        "expose_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+# Add CORS headers to all responses
+@app.after_request
+def after_request(response):
+    # These headers are automatically added by flask-cors, but we keep this
+    # for any additional headers you might want to add in the future
+    return response
 
 # Initialize the executor for background tasks
 executor = Executor(app)
@@ -82,12 +98,6 @@ async def evaluate_drawing_async(image_data: bytes) -> Evaluation:
         .image(image_data)\
         .prompt_for_type(Evaluation)
 
-
-    # return {
-    #     "evaluation": "Great job! Your map shows good understanding of geographical features.",
-    #     "confidence": 0.85,
-    #     "feedback": ["Well-drawn coastlines", "Good use of labels", "Consider adding more detail"]
-    # }
     print(evaluation)
     return evaluation
 
@@ -163,6 +173,14 @@ def evaluate() -> tuple[dict[str, Any], int]:
 def health() -> dict[str, str]:
     """Simple health-check endpoint suitable for container orchestration."""
     return {"status": "ok"}
+
+@app.get("/test-cors")
+def test_cors() -> dict[str, str]:
+    """Test endpoint to verify CORS is working."""
+    return {
+        "message": "CORS is working!",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 
 if __name__ == "__main__":
