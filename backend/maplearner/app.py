@@ -75,13 +75,13 @@ async def evaluate_drawing_async(image_data: bytes) -> Evaluation:
         f.write(image_data)
 
     evaluation = await llm\
+        .agent("Here's the reference drawing, which I will soon refer to in the example response:")\
+        .image('data/example_drawing_france.png')\
         .agent(load_prompt('simple'))\
         .request("What now follows is the student's attempt to evaluate:")\
         .image(image_data)\
         .prompt_for_type(Evaluation)
 
-        #.agent("Here's the reference drawing, which I will soon refer to in the example response:")\
-        #.image('data/example_drawing_france.png')\
 
     # return {
     #     "evaluation": "Great job! Your map shows good understanding of geographical features.",

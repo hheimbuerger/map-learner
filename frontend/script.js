@@ -250,10 +250,26 @@ submitBtn.addEventListener('click', async () => {
     // Save before submitting
     await saveDrawing();
     
-    // Convert canvas to blob
-    const blob = await new Promise(resolve => 
-        canvas.toBlob(resolve, 'image/png')
-    );
+    // Convert canvas to blob with white background
+    const blob = await new Promise(resolve => {
+        // Create a temporary canvas with white background
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Set same dimensions as original canvas
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        
+        // Fill with white background
+        tempCtx.fillStyle = 'white';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Draw the original canvas on top
+        tempCtx.drawImage(canvas, 0, 0);
+        
+        // Convert to blob
+        tempCanvas.toBlob(resolve, 'image/png');
+    });
     
     // Create form data and append the image
     const formData = new FormData();
