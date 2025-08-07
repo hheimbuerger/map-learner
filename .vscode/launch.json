@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Backend (Flask)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/maplearner/app.py",
+            "cwd": "${workspaceFolder}/backend",
+            "env": {
+                "FLASK_APP": "maplearner/app.py",
+                "FLASK_ENV": "development",
+                "MAPLEARNER_DEBUG": "true"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Run Frontend (Electron)",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/frontend",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "start"
+            ],
+            "console": "integratedTerminal",
+            "windows": {
+                "runtimeExecutable": "npm.cmd"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Full App (Frontend + Backend)",
+            "configurations": [
+                "Run Backend (Flask)",
+                "Run Frontend (Electron)"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maplearner"
+version = "0.1.0"
+description = "Backend service for MapLearner providing /evaluate endpoint"
+authors = [
+    { name = "MapLearner Team" }
+]
+requires-python = ">=3.12"
+readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "flask>=3.0",
+    "Pillow>=11.0",
+    "flask-executor>=0.10.0",
+    "aiohttp>=3.9.0",
+    "fluent-llm @ file:///D:/Development/fluent-llm#egg=fluent-llm", # Editable local development version
+    "pydantic>=2.11.7",
+    "python-dotenv>=1.1.1",
+]
+
+[project.optional-dependencies]
+# Add optional dependencies here
+dev = [
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["maplearner*"]
+
+[tool.uv]
+# uv will install the dependencies declared above
+# Add any UV-specific configuration here

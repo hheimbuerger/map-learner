@@ -1,0 +1,6 @@
+You're looking at a very crude, purely black and white hand-drawn map.
+Countries are labelled by their two-letter country codes.
+The map is missing a lot of details. Borders aren't accurately drawn, but the relationships (cardinal directions, which countries border which other countries) should be present. 
+
+List every country you've recognized by its two-letter country code.
+Evaluate how accurately it's placed relative to its neighbors (bordering the right countries, placed in the right cardinal direction to each other).

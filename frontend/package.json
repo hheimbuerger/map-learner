@@ -1,0 +1,50 @@
+{
+  "name": "map-learner",
+  "version": "1.0.0",
+  "description": "Simple drawing app with canvas",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start-debug": "set ELECTRON_RUN_AS_NODE=1 && electron --remote-debugging-port=9222 .",
+    "build": "electron-builder",
+    "dist": "electron-builder --publish=never"
+  },
+  "keywords": [
+    "electron",
+    "drawing",
+    "canvas"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/map-learner.git"
+  },
+  "devDependencies": {
+    "electron": "^37.1.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "de.heimbuerger.maplearner",
+    "productName": "Map Learner",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/**/test/**",
+      "!**/.git/**"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico"
+    },
+    "extraResources": [
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ]
+  }
+}
