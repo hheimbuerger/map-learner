@@ -82,15 +82,26 @@
             }
         },
         
-        // Get backend URL - fallback to current origin for web mode
+        // Get backend URL with fallback to environment variable or default
         getBackendUrl: () => {
-            if (isElectron) {
-                // In Electron, we can use the configured backend URL
-                return 'http://localhost:8000'; // Default, could be from config
-            } else {
-                // In web mode, assume backend is on same origin or configure as needed
-                return window.location.origin.replace(':3000', ':8000'); // Adjust port if needed
+            // First check if we have an environment-specific backend URL
+            if (process.env.REACT_APP_BACKEND_URL) {
+                return process.env.REACT_APP_BACKEND_URL;
             }
+            
+            // For Electron, we can use the configured backend URL
+            if (isElectron) {
+                return 'http://localhost:8000'; // Default for Electron
+            }
+            
+            // For web mode, try to use the same hostname with port 8000
+            // This handles both localhost and network access cases
+            const hostname = window.location.hostname;
+            const protocol = window.location.protocol;
+            const port = 8000; // Default backend port
+            
+            // If we're not on localhost and not in Electron, assume the backend is on the same host
+            return `${protocol}//${hostname}:${port}`;
         }
     };
 

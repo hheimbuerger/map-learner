@@ -63,19 +63,60 @@ function getCoordinates(e) {
     };
 }
 
+// Track if the right button is currently pressed
+let isRightButtonDown = false;
+
 // Set up pointer event listeners
 const handlePointerDown = (e) => {
-    if (isValidDrawingEvent(e)) {
+    console.log('PointerDown - button:', e.button, 'type:', e.pointerType, 'buttons:', e.buttons);
+    
+    // Check for right-click (button 2) to enable erasing
+    if (e.button === 2) {
+        console.log('Right mouse button down - enabling eraser');
+        isErasing = true;
+        isRightButtonDown = true;
         e.preventDefault();
         startDrawing(e);
+    } else if (isValidDrawingEvent(e)) {
+        console.log('Left mouse button down - normal drawing');
+        isErasing = false;
+        e.preventDefault();
+        startDrawing(e);
+    } else {
+        console.log('Ignoring pointer down - not a valid drawing event');
     }
 };
 
 const handlePointerMove = (e) => {
-    if (isDrawing && isValidDrawingEvent(e)) {
+    // Check if right button is being held down during move
+    const isRightButtonActive = e.buttons === 2 || (isRightButtonDown && e.pointerType === 'mouse');
+    
+    console.log('PointerMove - isDrawing:', isDrawing, 'isErasing:', isErasing, 
+                'buttons:', e.buttons, 'button:', e.button, 
+                'isRightButtonDown:', isRightButtonDown,
+                'isRightButtonActive:', isRightButtonActive);
+    
+    // If we're in erasing mode (right button was pressed) or it's a valid drawing event
+    if (isDrawing && (isValidDrawingEvent(e) || isRightButtonActive)) {
+        // If right button is active, ensure we're in erasing mode
+        if (isRightButtonActive) {
+            isErasing = true;
+        }
+        
+        console.log('Drawing with isErasing:', isErasing);
         e.preventDefault();
         draw(e);
     }
+};
+
+// Add pointer up event to reset right button state
+const handlePointerUp = (e) => {
+    if (e.button === 2) {
+        console.log('Right mouse button up');
+        isRightButtonDown = false;
+        // Don't reset isErasing here to allow for smooth transition if needed
+    }
+    stopDrawing();
 };
 
 // Add pointer event listeners
@@ -89,6 +130,11 @@ const pointerEvents = [
 
 pointerEvents.forEach(({ type, handler }) => {
     canvas.addEventListener(type, handler, { passive: false });
+});
+
+// Prevent context menu on right-click
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
 });
 
 // Set up event listeners for touch
@@ -139,6 +185,8 @@ function startDrawing(e) {
 function draw(e) {
     if (!isDrawing) return;
 
+    const coords = getCoordinates(e);
+
     if (isErasing) {
         // Use composite operation to erase
         ctx.globalCompositeOperation = 'destination-out';
@@ -155,10 +203,10 @@ function draw(e) {
 
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.lineTo(coords.x, coords.y);
     ctx.stroke();
 
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+    [lastX, lastY] = [coords.x, coords.y];
 }
 
 function stopDrawing() {

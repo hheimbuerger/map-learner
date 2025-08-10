@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 6001;
 const isDev = process.argv.includes('--dev');
 
 // MIME types for different file extensions
